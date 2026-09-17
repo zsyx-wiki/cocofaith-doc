@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CoCoFaith">
+  <rect width="64" height="64" rx="14" fill="#118a7e"/>
+  <path d="M18 28c0-9 7-16 16-16 7 0 13 4 15 11-7-3-15-2-21 3-6 5-9 13-7 21-2-1-3-2-4-4-4-5-4-10 1-15Z" fill="#d9fff5"/>
+  <path d="M28 33c5-5 12-6 20-3 0 13-8 22-20 22-5 0-9-1-12-4 1-6 5-11 12-15Z" fill="#f3d27c"/>
+  <circle cx="36" cy="24" r="3" fill="#16322f"/>
+</svg>
+
