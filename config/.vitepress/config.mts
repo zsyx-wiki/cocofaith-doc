@@ -52,7 +52,13 @@ function usageSidebar() {
     },
     { text: "Core", items: [{ text: "Core 配置", link: "/config/core" }] },
     { text: "Business", items: [{ text: "Business 配置", link: "/config/business" }] },
-    { text: "Adapter", items: [{ text: "Adapter 配置", link: "/config/adapter-qq" }] },
+    {
+      text: "Adapter",
+      items: [
+        { text: "QQ 官方机器人", link: "/config/adapter-qq" },
+        { text: "OneBot", link: "/config/adapter-onebot" },
+      ],
+    },
   ];
 }
 

@@ -38,7 +38,7 @@ scripts/
 
 - Koishi 数据库。
 - Koishi 配置。
-- 三个插件源码提交版本。
+- Core、Business、Adapter 和 SDK 的版本或提交号。
 - Adapter openid 配置。
 
 ## 数据完整性

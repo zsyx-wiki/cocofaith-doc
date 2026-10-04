@@ -1,89 +1,90 @@
 # 环境搭建
 
-本页说明如何搭建 Core 开发环境，以及如何把本地 Core 接入 Koishi 实例进行联调。
+本页面向修改 Core 或 SDK 的开发者。普通部署请使用 [快速开始](../../start/quick-start)，不需要克隆源码。
 
 ## 前置要求
 
 | 工具 | 要求 |
 | --- | --- |
-| Node.js | 使用 Koishi 当前支持的 LTS 版本。 |
-| 包管理器 | npm 或 pnpm。 |
-| Git | 用于获取三件套源码。 |
-| Koishi | `4.16+`，安装与基础使用见 [Koishi 官方文档](https://koishi.chat/)。 |
-| 数据库插件 | Core 启动时必须注入 `database` 服务。 |
+| Node.js | 使用 Koishi 当前支持的 LTS 版本 |
+| 包管理器 | pnpm 或 npm |
+| Git | 获取源码和提交变更 |
+| Koishi | `4.16+` |
 
-## 获取源码
+## 只修改 Core
 
-当前 CoCoFaith v3 仍处于 `3.0.0-alpha.2`，配套包尚未发布到 npm。请使用源码开发：
-
-```bash
+```sh
 git clone https://github.com/zsyx-wiki/koishi-plugin-cocofaith-core.git
-git clone https://github.com/zsyx-wiki/koishi-plugin-cocofaith-business.git
-git clone https://github.com/zsyx-wiki/koishi-plugin-cocofaith-adapter-qq.git
+cd koishi-plugin-cocofaith-core
 ```
 
-建议三个仓库放在同一目录，便于本地路径安装。
+::: code-group
 
-## 构建 Core
-
-使用 pnpm：
-
-```bash
-cd koishi-plugin-cocofaith-core
+```sh [pnpm]
 pnpm install
-pnpm run build
+pnpm test
 ```
 
-使用 npm：
-
-```bash
-cd koishi-plugin-cocofaith-core
+```sh [npm]
 npm install
-npm run build
+npm test
 ```
 
-Core 的 `package.json` 入口指向 `lib/index.js`，所以本地安装到 Koishi 前必须至少构建一次。
+:::
 
-## 接入 Koishi 联调
+Core 依赖发布在 npm 上的 `@mueo/cocofaith-sdk`，不需要在相邻目录放置 SDK 或 Business，也可以独立生成 `lib`。
 
-在 Koishi 项目目录中安装本地 Core：
+## 修改公共契约或 Gameplay SDK
 
-```bash
-pnpm add ../koishi-plugin-cocofaith-core
+公共契约只在 SDK 仓库维护：
+
+```sh
+git clone https://github.com/zsyx-wiki/cocofaith-sdk.git
+cd cocofaith-sdk
 ```
 
-或：
+::: code-group
 
-```bash
-npm install ../koishi-plugin-cocofaith-core
+```sh [pnpm]
+pnpm install
+pnpm test
 ```
 
-完整三件套联调时，按以下顺序构建并安装：
+```sh [npm]
+npm install
+npm test
+```
+
+:::
+
+修改契约后，应同时在 Core、Business 和两个 Adapter 上运行测试。不要在各仓库复制一份契约类型。
+
+## 联调整套源码
+
+需要同时修改多个组件时，把仓库放在同一父目录：
 
 ```text
-Core → Business → Adapter
+cocofaith-sdk/
+koishi-plugin-cocofaith-core/
+koishi-plugin-cocofaith-business/
+koishi-plugin-cocofaith-adapter-qq/
+koishi-plugin-cocofaith-adapter-onebot/
 ```
 
-Koishi 中加载顺序也必须保持：
+按依赖顺序构建：
 
 ```text
-数据库插件 → CoCoFaith Core → CoCoFaith Business → CoCoFaith Adapter
+SDK → Core → Business → Adapter
 ```
+
+各包默认依赖 npm 版本的 SDK。只有正在联调未发布契约时，才需要通过包管理器 workspace 或 link 把依赖指向本地 SDK；提交前应恢复正常的包版本依赖。
 
 ## 常用命令
 
 | 命令 | 说明 |
 | --- | --- |
-| `npm run build` | 构建 `lib`、类型声明和 sourcemap。 |
-| `npm test` | 构建后运行 `tests/*.test.cjs`。 |
-| `npm run watch` | 监听构建，适合联调时使用。 |
+| `npm run build` | 生成 `lib` 和类型声明 |
+| `npm test` | 构建并运行测试 |
+| `npm run watch` | 监听源码并重新构建 |
 
-## 开发建议
-
-::: tip 推荐流程
-先写测试，再改 Core。Core 问题通常影响资产、身份和事务，一旦靠人工命令验证，漏掉并发和幂等问题的概率会很高。
-:::
-
-::: warning 生产数据
-不要拿生产数据库直接验证迁移或事务改动。涉及表结构、UID、背包、金币、登神分、身份绑定的变更都应先在备份数据库验证。
-:::
+Core 变更会影响资产、身份和事务。涉及表结构或持久数据时，使用测试数据库，并在合并前覆盖并发、回滚和幂等场景。

@@ -1,12 +1,10 @@
-# Adapter 配置
+# QQ 官方机器人 Adapter
 
-CoCoFaith Adapter 负责接入具体聊天平台。当前配套实现是 QQ 官方机器人 Adapter。它不实现玩法规则，只做平台事件解析、身份映射、Business 调度、消息渲染和指令面板同步。
+包名：`@mueo/koishi-plugin-cocofaith-adapter-qq`
 
-当前 QQ 官方机器人 Adapter 的配置定义位于 koishi-plugin-cocofaith-adapter-qq/config.ts。
+版本：`3.0.0-alpha.3`
 
-## 加载要求
-
-Adapter QQ 依赖 `faithCore` 与 `faithBusiness` 服务，必须在 Core 和 Business 之后加载：
+本插件接收 `koishi-plugin-adapter-qq` 产生的事件，并把 Business 结果转换成 QQ 官方机器人支持的消息。启用前必须先加载 Core 和 Business。
 
 ```text
 CoCoFaith Core
@@ -14,85 +12,98 @@ CoCoFaith Core
 → CoCoFaith Adapter QQ
 ```
 
-同时还需要正确配置 `koishi-plugin-adapter-qq`，确保 QQ 官方机器人本身能够收到私聊或群聊事件。
+## 安装
 
-## 基础模式
+::: code-group
 
-| 配置项 | 默认值 | 可选值 | 说明 |
-| --- | --- | --- | --- |
-| `mode` | `binding` | `binding`、`normal` | Adapter 工作模式。 |
-| `receiveMode` | `mention` | `mention`、`all` | 群聊消息接收模式。私聊不受此项影响。 |
+```sh [pnpm]
+pnpm add @mueo/koishi-plugin-cocofaith-adapter-qq@3.0.0-alpha.3 \\
+  koishi-plugin-adapter-qq
+```
 
-### `mode`
+```sh [npm]
+npm install @mueo/koishi-plugin-cocofaith-adapter-qq@3.0.0-alpha.3 \\
+  koishi-plugin-adapter-qq
+```
 
-`binding` 是推荐默认值。绑定模式只在群聊处理“椰子水”相关绑定命令，用于和 OneBot 等其他 Adapter 并行，避免重复响应完整玩法命令。
+:::
 
-`normal` 会处理完整 Business 命令，适合让 QQ 官方机器人成为 CoCoFaith 的主要入口。
+## 先选择运行模式
 
-如果同时运行多个平台 Adapter，建议只让一个 Adapter 处于 `normal`，其他 Adapter 保持绑定或辅助模式。
+| `mode` | 会处理什么 | 适用场景 |
+| --- | --- | --- |
+| `binding` | 仅处理群聊中的“椰子水”绑定命令，不处理私聊和普通玩法。 | OneBot 是主入口，QQ 只协助绑定。 |
+| `normal` | 处理完整 CoCoFaith 命令。 | QQ 官方机器人是主入口或唯一入口。 |
 
-### `receiveMode`
+默认值是 `binding`。只安装 QQ Adapter 时必须改成 `normal`，否则 `信仰 注册`、`每日祈祷` 等命令不会进入 Business。
 
-`mention` 只处理艾特机器人的群消息，适合默认部署。
+同时运行 QQ 和 OneBot 时，通常只让一个 Adapter 使用 `normal`，避免两个机器人同时回复。
 
-`all` 会尝试处理未艾特的 Faith 命令，但仍需要 QQ 开放平台向机器人下发全量群消息事件。即使开启 `all`，Adapter 也只处理 CoCoFaith 命令，不会接管所有聊天内容。
+## 群消息接收
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `receiveMode` | `mention` | `mention` 只处理艾特机器人的群消息；`all` 允许未艾特命令。 |
+
+私聊不受 `receiveMode` 影响。即使选择 `all`，QQ 开放平台也必须真的向机器人下发全量群消息事件；插件无法处理没有收到的消息。
+
+第一次部署建议保留 `mention`，确认命令和权限正常后再考虑 `all`。
 
 ## 创造者身份
 
-| 配置项 | 默认值 | 说明 |
-| --- | --- | --- |
-| `creatorUserOpenids` | 作者测试 `user_openid` | 创造者私聊 `user_openid` 列表。必须修改。 |
-| `creatorGroupIdentities` | 作者测试群身份 | 创造者群聊身份列表。每项需要 `groupOpenid` 与 `memberOpenid`。必须修改。 |
-
-源码内置的 openid 属于作者测试账号和测试群。部署前必须替换为自己的 QQ 官方机器人 openid，否则创造者命令权限和管理行为会指向错误身份。
-
-群聊创造者身份必须同时填写：
-
-| 字段 | 说明 |
+| 配置 | 应填写的内容 |
 | --- | --- |
-| `groupOpenid` | 目标群的 `group_openid`。 |
-| `memberOpenid` | 创造者在该群内的 `member_openid`。 |
+| `creatorUserOpenids` | 创造者私聊事件中的 `user_openid` 列表 |
+| `creatorGroupIdentities` | 每个目标群的 `group_openid` 与创造者在该群的 `member_openid` |
 
-只填写普通 QQ 号无效。QQ 官方机器人体系下的 openid 与用户 QQ 号不是同一个值。
+::: danger 不要保留默认值
+默认值属于插件作者的测试账号和测试群。普通 QQ 号不能代替 openid。
+:::
+
+群聊创造者身份需要同时填写：
+
+```yaml
+creatorGroupIdentities:
+  - groupOpenid: 目标群的 group_openid
+    memberOpenid: 创造者在该群的 member_openid
+```
+
+如果创造者命令完全没有回复，先检查这些身份是否来自当前机器人收到的事件，以及该平台身份是否已经注册或绑定 UID。
 
 ## 指令面板
 
-| 配置项 | 默认值 | 说明 |
+| 配置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `commandPanel.enabled` | `true` | 是否同步 QQ 群指令面板。 |
-| `commandPanel.groupId` | 作者测试群 `group_openid` | 展示指令面板的 QQ 群 `group_openid`。必须修改。 |
+| `commandPanel.enabled` | `true` | 正常模式下同步 QQ 群指令面板 |
+| `commandPanel.groupId` | 作者测试群 | 面板所在群的 `group_openid`，必须替换 |
 
-启用后，Adapter QQ 会从 Business 获取稳定命令清单并同步到指定群。插件使用 `faith-v3-command-panel`，并接管旧版 `faith-qq-command-panel`，避免重复维护同一个面板。
+绑定模式不会同步完整玩法面板。暂时不使用面板时，可以关闭 `commandPanel.enabled`，避免错误的群 ID 反复写入日志。
 
-指令面板同步失败只会写入日志，不会阻止普通命令处理。
+面板同步失败不会阻止普通命令处理。
 
 ## 主动消息
 
-| 配置项 | 默认值 | 说明 |
+| 配置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `allowProactiveMessages` | `false` | 是否允许 Business 明确要求的主动消息。 |
+| `allowProactiveMessages` | `false` | 允许发送 Business 明确标记为 `proactive-required` 的结果 |
 
-普通回复超过 QQ 被动回复时限后会直接丢弃，不会自动升级为主动消息。
+普通被动回复过期后会丢弃，不会自动转成主动消息。打开此选项也不代表一定能发送，最终仍受 QQ 开放平台权限、额度和消息凭证限制。
 
-只有 Business 结果明确标记为必须主动发送，并且 `allowProactiveMessages` 为 `true` 时，Adapter 才会尝试主动消息。是否发送成功仍取决于 QQ 开放平台权限、额度和消息凭证。
+生产环境建议先保持关闭。
 
-生产部署建议保持默认 `false`，先确认普通被动回复稳定。
+## 常用配置
 
-## 推荐配置组合
+| 部署方式 | `mode` | `receiveMode` |
+| --- | --- | --- |
+| 只使用 QQ 官方机器人 | `normal` | `mention` |
+| QQ 免艾特响应 | `normal` | `all` |
+| OneBot 负责完整玩法 | `binding` | `mention` |
 
-| 场景 | `mode` | `receiveMode` | 说明 |
-| --- | --- | --- | --- |
-| QQ 官方机器人作为唯一入口 | `normal` | `mention` | 最稳妥的完整玩法入口。 |
-| QQ 官方机器人需要免艾特响应 | `normal` | `all` | 需要平台实际下发全量群消息事件。 |
-| 与 OneBot 主入口并行 | `binding` | `mention` | QQ 官方机器人只承担身份绑定和辅助入口。 |
-| 测试指令面板 | `binding` 或 `normal` | `mention` | 先替换 `commandPanel.groupId`，再观察日志。 |
+## 启动检查
 
-## 配置前检查清单
-
-- 已启用并配置 `koishi-plugin-adapter-qq`。
-- 已按顺序加载 Core、Business、Adapter QQ。
-- 已把 `creatorUserOpenids` 替换为自己的私聊 `user_openid`。
-- 已把 `creatorGroupIdentities` 替换为目标群中的 `group_openid` 与 `member_openid`。
-- 已把 `commandPanel.groupId` 替换为目标群 `group_openid`，或关闭 `commandPanel.enabled`。
-
-
+- `koishi-plugin-adapter-qq` 已经能独立收发消息。
+- Core 和 Business 已在本插件之前加载。
+- `mode` 与实际入口一致。
+- 作者测试 openid 已全部替换。
+- 不使用指令面板时已关闭面板。
+- `关于椰子水` 能返回 QQ Adapter 版本。

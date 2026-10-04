@@ -1,131 +1,183 @@
 # 快速开始
-开始请**务必**参考[基础环境](./environment)部分部署好基础环境。
 
-本页假设你已经有一个可以运行的 Koishi 项目，并且已经启用了数据库插件。
+下面从一个已经能启动的 Koishi 项目开始。如果还没有数据库或平台适配器，请先完成 [基础环境](./environment)。
 
-Koishi 的安装和使用请看 [Koishi 官方文档](https://koishi.chat/)。
+当前文档使用 `3.0.0-alpha.3`。alpha 版本可能调整接口，升级前请备份数据库，并让 Core、Business、Adapter 使用同一版本。
 
-## 1. 克隆源码
+## 1. 确认 Koishi 数据库
 
-在一个工作目录中克隆三个插件：
+打开 Koishi 控制台，检查数据库插件已经启用。SQLite、MySQL、PostgreSQL 均可，Core 只要求 Koishi 提供 `database` 服务。
 
-```bash
-git clone https://github.com/zsyx-wiki/koishi-plugin-cocofaith-core.git
-git clone https://github.com/zsyx-wiki/koishi-plugin-cocofaith-business.git
-git clone https://github.com/zsyx-wiki/koishi-plugin-cocofaith-adapter-qq.git
+如果日志中出现“缺少 database 服务”，说明数据库插件没有启用，或加载顺序不正确。
+
+## 2. 安装 Core 和 Business
+
+在 Koishi 项目目录执行：
+
+::: code-group
+
+```sh [pnpm]
+pnpm add @mueo/koishi-plugin-cocofaith-core@3.0.0-alpha.3 \\
+  @mueo/koishi-plugin-cocofaith-business@3.0.0-alpha.3
 ```
 
-## 2. 构建插件
-
-进入每个插件目录，安装依赖并构建。
-
-pnpm：
-
-```bash
-pnpm install
-pnpm run build
+```sh [npm]
+npm install @mueo/koishi-plugin-cocofaith-core@3.0.0-alpha.3 \\
+  @mueo/koishi-plugin-cocofaith-business@3.0.0-alpha.3
 ```
 
-npm：
+:::
 
-```bash
-npm install
-npm run build
+不需要单独安装 `@mueo/cocofaith-sdk`，它会作为依赖自动安装。
+
+## 3. 安装一个 Adapter
+
+根据机器人实际使用的平台选择。也可以同时安装两个，但第一次部署建议先接通一个。
+
+### QQ 官方机器人
+
+::: code-group
+
+```sh [pnpm]
+pnpm add @mueo/koishi-plugin-cocofaith-adapter-qq@3.0.0-alpha.3 \\
+  koishi-plugin-adapter-qq
 ```
 
-三个插件都要构建。构建后会生成 `lib` 目录，Koishi 加载插件时会使用它。
-
-## 3. 安装到 Koishi 项目
-
-进入你的 Koishi 项目目录，用本地路径安装三个插件。
-
-pnpm：
-
-```bash
-pnpm add ../koishi-plugin-cocofaith-core
-pnpm add ../koishi-plugin-cocofaith-business
-pnpm add ../koishi-plugin-cocofaith-adapter-qq
-pnpm add koishi-plugin-adapter-qq
+```sh [npm]
+npm install @mueo/koishi-plugin-cocofaith-adapter-qq@3.0.0-alpha.3 \\
+  koishi-plugin-adapter-qq
 ```
 
-npm：
+:::
 
-```bash
-npm install ../koishi-plugin-cocofaith-core
-npm install ../koishi-plugin-cocofaith-business
-npm install ../koishi-plugin-cocofaith-adapter-qq
-npm install koishi-plugin-adapter-qq
+### OneBot
+
+如果 Koishi 已经装好 OneBot 平台适配器，只安装 CoCoFaith Adapter：
+
+::: code-group
+
+```sh [pnpm]
+pnpm add @mueo/koishi-plugin-cocofaith-adapter-onebot@3.0.0-alpha.3
 ```
 
-上面的 `../` 路径只是示例。请按你的实际目录调整。
+```sh [npm]
+npm install @mueo/koishi-plugin-cocofaith-adapter-onebot@3.0.0-alpha.3
+```
 
-## 4. 在 Koishi 中启用插件
+:::
 
-请按这个顺序启用：
+## 4. 在 Koishi 中加载插件
+
+在控制台的插件配置中按顺序启用：
 
 ```text
 数据库插件
 → CoCoFaith Core
 → CoCoFaith Business
-→ CoCoFaith Adapter
+→ CoCoFaith Adapter QQ 或 OneBot
 ```
 
-顺序不对时，后面的插件可能找不到需要的服务。
+正常启动时，日志中应依次出现 Core 初始化完成、Business 已就绪和 Adapter 已加载。Business 找不到 `faithCore`，或者 Adapter 找不到 `faithBusiness`，通常都是前置插件没有启用。
 
 ## 5. 配置 Adapter
-将你的`koishi-plugin-adapter-qq`配置完毕，
 
-具体参考：[Koishi QQ适配器文档](https://koishi.chat/zh-CN/plugins/adapter/qq.html)
+### 只使用 QQ 官方机器人
 
-打开 CoCoFaith Adapter 配置，先修改下面这些值：
+打开 CoCoFaith Adapter QQ：
 
-| 配置 | 填什么 |
+| 配置 | 新手建议 |
 | --- | --- |
-| `mode` | 如果 QQ 官方机器人是主要入口，填 `normal`。 |
-| `receiveMode` | 新手建议先用 `mention`。 |
-| `creatorUserOpenids` | 你的创造者私聊 `user_openid`。 |
-| `creatorGroupIdentities` | 你的 `group_openid` 和 `member_openid`。 |
-| `commandPanel.groupId` | 要同步指令面板的群 `group_openid`。 |
-| `allowProactiveMessages` | 先保持 `false`。 |
+| `mode` | 改为 `normal` |
+| `receiveMode` | 保持 `mention` |
+| `creatorUserOpenids` | 换成自己的私聊 `user_openid` |
+| `creatorGroupIdentities` | 填自己的 `group_openid` 与 `member_openid` |
+| `commandPanel.groupId` | 换成自己的群 `group_openid`，暂时不用可关闭面板 |
+| `allowProactiveMessages` | 保持 `false` |
 
-::: warning 必须修改 openid
-插件源码里的默认 openid 是作者测试账号和测试群。部署前必须换成你自己的。
+::: danger 必须替换默认 openid
+QQ Adapter 的默认 openid 是作者测试账号和测试群。未替换时，创造者权限和指令面板会指向错误对象。
 :::
 
-## 6. 测试是否启动成功
+### 只使用 OneBot
 
-重启或重载 Koishi 后，在 QQ 群里艾特机器人发送：
+打开 CoCoFaith Adapter OneBot：
+
+| 配置 | 新手建议 |
+| --- | --- |
+| `mode` | 改为 `normal` |
+| `allowRegistration` | 需要允许新玩家注册时设为 `true` |
+| `enableBroadcast` | 保持 `true` |
+
+`allowRegistration` 默认为关闭。只部署 OneBot 却不打开它时，未绑定用户不能执行 `信仰 注册`。
+
+### 同时使用 QQ 和 OneBot
+
+最常见的组合是：
+
+- QQ Adapter：`normal`，负责注册和完整玩法。
+- OneBot Adapter：`binding`，只在私聊处理绑定命令。
+
+不要让两个机器人同时响应同一个群里的完整命令。
+
+## 6. 重启并验收
+
+重启 Koishi。QQ 群使用 `mention` 模式时，要先艾特机器人，再发送：
 
 ```text
 关于椰子水
 ```
 
-正常会返回 Koishi、Core、Business 和 Adapter 的版本信息。
-
-再试几个基础命令：
+回复中应显示 Core、Business 和当前 Adapter 的版本。然后按顺序测试：
 
 ```text
-信仰 信息
 信仰 注册 [信仰名]
+信仰 信息
 每日祈祷
 虚空祈求 1
 捡垃圾
 ```
 
+`信仰 注册` 只能执行一次。测试服不确定信仰名时，可以先发送 `信仰 注册`，错误提示会列出可选信仰。
+
 ## 常见问题
 
-### 没有任何回复
+### 群里没有回复
 
-先确认 `koishi-plugin-adapter-qq` 能收到 QQ 消息。然后检查 Adapter 的 `receiveMode`：
+1. 先确认底层 QQ 或 OneBot 适配器能收到消息。
+2. QQ 的 `receiveMode: mention` 要求艾特机器人。
+3. 检查 CoCoFaith Adapter 是否处于 `binding`；绑定模式不会处理完整玩法。
+4. 查看 Koishi 日志中是否缺少 `faithCore` 或 `faithBusiness`。
 
-- `mention`：群聊必须艾特机器人。
-- `all`：不艾特也会处理，但 QQ 平台必须下发全量群消息事件。
+### 提示当前接入端未开放注册
+
+- QQ：把 Adapter 设为 `normal`。
+- OneBot：同时设置 `mode: normal` 和 `allowRegistration: true`。
+- 如果管理员要求统一从 QQ 注册，请先完成跨平台绑定，不要打开 OneBot 注册。
 
 ### Business 没有加载
 
-检查 CoCoFaith Core 是否已经启用，并且在 Business 之前加载。
+确认数据库、Core、Business 的启用顺序，并检查 Core 是否成功创建 `faith_core_*` 数据表。
 
-### 管理命令没有效果
+### 创造者命令没有回复
 
-检查创造者 openid。这里需要 QQ 官方机器人体系下的 openid，不是普通 QQ 号。
+QQ 官方机器人必须填写 openid，普通 QQ 号无效。OneBot 与 QQ 官方机器人并行时，先确认两个身份已经绑定到同一个 UID。
 
+### 安装到了错误版本
+
+检查项目目录中的实际版本：
+
+::: code-group
+
+```sh [pnpm]
+pnpm list @mueo/koishi-plugin-cocofaith-core \\
+  @mueo/koishi-plugin-cocofaith-business
+```
+
+```sh [npm]
+npm ls @mueo/koishi-plugin-cocofaith-core \\
+  @mueo/koishi-plugin-cocofaith-business
+```
+
+:::
+
+Core、Business 和 Adapter 应全部为 `3.0.0-alpha.3`。

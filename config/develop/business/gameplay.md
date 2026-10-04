@@ -21,7 +21,7 @@ import {
   defineGameplayConfig,
   fail,
   gameplayInteger,
-} from "@mueo/koishi-plugin-cocofaith-business"
+} from "@mueo/cocofaith-sdk/gameplay"
 
 const config = defineGameplayConfig({
   rewardGold: gameplayInteger(50, {

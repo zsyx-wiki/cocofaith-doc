@@ -1,6 +1,6 @@
 # Core 配置
 
-CoCoFaith Core 是三件套的基础服务层。它负责注册 `faithCore` 服务、初始化公共数据表、维护 UID 与平台身份、提供经济和物品事务能力。Core 不注册玩家玩法命令，但 Business 和 Adapter 都依赖它。
+CoCoFaith Core 注册 `faithCore` 服务、初始化公共数据表，并维护 UID、平台身份、经济、背包和事务。它不注册玩家命令；Business 和 Adapter 通过服务接口使用 Core。
 
 Core 配置定义位于 `koishi-plugin-cocofaith-core/config.ts`。
 

@@ -1,13 +1,16 @@
 # Adapter 开发
 
-Adapter 是 CoCoFaith 的平台接入层。它负责身份解析、内容归一化、Business 分发和平台消息渲染。
+Adapter 连接聊天平台和 CoCoFaith Business。它读取平台事件，构造稳定身份和统一命令事件，再把 Business 结果发送回平台。
 
-<CalloutGrid :items="[
-  { title: '身份稳定', body: 'Adapter 必须提供可持久化的平台身份，不使用昵称等可变字段。' },
-  { title: '消息边界', body: 'Business 返回平台无关结果，Adapter 负责渲染为平台消息。' },
-  { title: '失败不回滚', body: '平台发送失败不应回滚已经提交的业务事务。', tone: 'amber' }
-]" />
+Adapter 应完成：
 
-## 当前文档
+- 平台身份转换
+- 消息内容归一化
+- UID 解析
+- Business 调度
+- 结果渲染与发送降级
+- 平台回复时限、广播或指令面板处理
 
-- [平台接入](./platform)：身份、内容、dispatch、主动消息、错误映射和发送降级。
+Adapter 不实现奖励、物品、信仰等玩法规则，也不直接读写 CoCoFaith 数据表。
+
+编写新平台接入时阅读 [平台接入](./platform)。至少测试身份稳定性、群私聊区分、命令归一化、注册权限、错误结果和发送失败。

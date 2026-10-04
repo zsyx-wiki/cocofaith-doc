@@ -8,7 +8,6 @@ src/
 ├── data/                 # 内置物品、可开启物品、职业、信仰、彩蛋
 ├── economy/              # 经济与奖励服务
 ├── faith/                # 信仰注册表与信仰操作
-├── gameplay/             # 轻量 Gameplay SDK 类型与工具
 ├── items/                # 物品注册、背包与物品校验
 ├── lifecycle/            # Core 生命周期与游戏日
 ├── professions/          # 职业注册表
@@ -18,6 +17,8 @@ src/
 ├── service.ts            # FaithCoreService 聚合入口
 └── index.ts              # Koishi 插件入口与导出
 ```
+
+Core 契约和 Gameplay SDK 位于独立的 `@mueo/cocofaith-sdk`，Core 仓库不再维护 `src/gameplay`。
 
 ## 入口文件
 

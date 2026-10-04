@@ -1,6 +1,6 @@
 # 接口参考
 
-本页汇总 CoCoFaith Core 对外提供的基础能力。它不是完整 TypeScript 声明文件的替代品，而是开发时查能力边界和常用入口的索引。
+这里列出 Core 的常用入口。精确参数和返回类型以 `@mueo/cocofaith-sdk/core` 的类型声明为准。
 
 ## 包导出
 
@@ -27,7 +27,7 @@
 | `integrity` | 数据完整性检查。 |
 | `health` | 健康检查。 |
 | `status-identities` | 身份状态服务。 |
-| `gameplay` | Gameplay SDK、配置、结果和错误工具。 |
+| `@mueo/cocofaith-sdk/gameplay` | Gameplay SDK、配置、结果和错误工具；Core 仅为兼容性重新导出。 |
 
 ## `ctx.faithCore`
 

@@ -1,8 +1,33 @@
 # Gameplay SDK
 
-Core 的 `src/gameplay` 提供轻量 Gameplay SDK。它本身不注册具体玩法，而是为 Business 的 `defineGameplay()` 提供平台无关的事件、结果、配置和原子命令类型。
+Gameplay SDK 由独立包 `@mueo/cocofaith-sdk` 维护，不在 Core 仓库复制源码。它是普通 TypeScript 库，可以在没有本地 Core 源码的项目中提供类型检查。
 
-## 事件模型
+安装开发依赖：
+
+::: code-group
+
+```sh [pnpm]
+pnpm add -D @mueo/cocofaith-sdk@3.0.0-alpha.3
+```
+
+```sh [npm]
+npm install -D @mueo/cocofaith-sdk@3.0.0-alpha.3
+```
+
+:::
+
+玩法工具从专用入口导入：
+
+```ts
+import {
+  defineGameplay,
+  defineGameplayConfig,
+  fail,
+  gameplayInteger,
+} from "@mueo/cocofaith-sdk/gameplay"
+```
+
+## 事件
 
 ```ts
 interface GameplayEvent {
@@ -14,55 +39,40 @@ interface GameplayEvent {
   roomKey?: string
   eventId?: string
   displayName?: string
-  adapter?: { name: string; version: string }
+  adapter?: {
+    name: string
+    version: string
+  }
 }
 ```
 
-Adapter 负责构造事件，Business 负责消费事件。Core 不关心平台消息格式。
+Adapter 构造事件，Business 消费事件。SDK 不认识 Session、QQ Markdown 或 CQ Code。
 
 ## 命令上下文
 
-普通命令上下文包含：
+普通命令可以使用 `uid`、`event`、`args`、`path`、`core`、`config` 和 `service`。
 
-- `uid`
-- `event`
-- `args`
-- `path`
-- `core`
-- `config`
-- `service`
+`atomic: "user"` 命令还会得到：
 
-原子命令额外包含：
+- `tx`：完整原子事务作用域
+- `state.data`：玩法私有状态
+- `state.publicData`：玩法公开状态
+- `state.gameDay`：当前游戏日
+- `economy`、`items`、`user`：当前玩家的事务接口
 
-- `tx`
-- `state.data`
-- `state.publicData`
-- `state.gameDay`
-- `economy`
-- `items`
-- `user`
+## 输出
 
-## 输出模型
+玩法可以返回字符串，也可以返回文本、图片、混合消息或静默结果。结果始终保持平台无关，由 Adapter 决定最终发送格式。
 
-Gameplay 输出映射为 Business 结果：文本、图片、混合消息或静默响应。
+## 配置
 
-::: danger 不要跨层
-SDK 结果仍然是平台无关的。不要让 Core 或 Business 生成 QQ Markdown、CQ Code、Discord Embed 等平台格式。
-:::
+`defineGameplayConfig()` 同时生成默认值、运行时校验和 TypeScript 类型。基础字段包括：
 
-## 配置模型
+```ts
+gameplayInteger()
+gameplayNumber()
+gameplayBoolean()
+gameplayString()
+```
 
-`defineGameplayConfig()` 将默认值、运行时校验和类型推导统一起来。Core 提供基础构造器，Business 复用它生成 Koishi Schema。
-
-适合放到 Core SDK 的内容：
-
-- 平台无关事件字段。
-- 命令上下文类型。
-- 输出结果结构。
-- 配置字段构造器。
-
-不适合放到 Core SDK 的内容：
-
-- 具体命令触发词。
-- 具体玩法数值。
-- 平台消息格式。
+具体命令触发词、奖励数值和平台消息格式不属于 SDK。完整示例见 [玩法开发](../business/gameplay)。
