@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useData } from 'vitepress'
+
+const { isDark } = useData()
 
 type Tone = 'muted' | 'blue' | 'gold' | 'green' | 'danger'
 type Line = { text: string; tone?: Tone }
@@ -13,7 +16,7 @@ type Draw = { level: VoidLevel | '彩蛋'; name: string }
 
 const commands = [
   { command: '信仰 信息', group: 'faith', label: 'PLAYER PROFILE' },
-  { command: '每日祈祷', group: 'dailyPrayer', label: 'DAILY PRAYER' },
+  { command: '昔我长铭，流光拓影', group: 'dailyPrayer', label: 'DAILY PRAYER' },
   { command: '虚空祈求 1', group: 'voidPrayer', label: 'VOID DRAW' },
   { command: '捡垃圾', group: 'junk', label: 'SCAVENGE' },
   { command: '恶魔轮盘 加入', group: 'roulette', label: 'JOIN ROOM' },
@@ -46,10 +49,9 @@ const responses: Record<string, Line[]> = {
   help: [{ text: 'registered commands:', tone: 'blue' }, ...commands.map(({ command, group }) => ({ text: `  ${group.padEnd(13)} ${command}`, tone: 'muted' as Tone }))],
   '关于椰子水': [
     { text: '关于椰子水', tone: 'blue' },
-    { text: '架构：Coconut Mind 1.21.1' },
-    { text: 'Core：CoCoFaith Core 3.0.0-alpha.3' },
-    { text: 'Business：CoCoFaith Business 3.0.0-alpha.3' },
-    { text: 'Adapter：CoCoFaith Thinking 3.0.0-alpha.3', tone: 'green' },
+    { text: '架构：CoCoNut v1.21.1' },
+    { text: 'CoCoFaith：v3.0.0-rc.1' },
+    { text: '人格：CoCoNut Mind v3.0.0-age.1', tone: 'green' },
   ],
   '信仰 信息': [
     { text: 'UID：11101001' },
@@ -61,7 +63,7 @@ const responses: Record<string, Line[]> = {
     { text: '觐见排名：1' },
     { text: '金币：520521', tone: 'gold' },
   ],
-  '每日祈祷': [
+  '昔我长铭，流光拓影': [
     { text: '记忆之神回应了你｜登神分 +12｜金币 +68', tone: 'blue' },
     { text: '今日祈祷 1/1', tone: 'gold' },
   ],
@@ -134,7 +136,7 @@ const minds: Record<string, { route: string; context: string; confidence: number
   help: { route: 'registry.help', context: '已注册的玩法命令', confidence: 99, risk: 1, note: '把能用的命令列清楚。', tone: 'clear' },
   '关于椰子水': { route: 'runtime.about', context: '插件包与当前版本', confidence: 99, risk: 1, note: '确认一下正在运行的组件。', tone: 'clear' },
   '信仰 信息': { route: 'faith.info', context: '玩家、信仰、职业与资产', confidence: 99, risk: 2, note: '信息有点多，按顺序排好。', tone: 'clear' },
-  '每日祈祷': { route: 'dailyPrayer.run', context: '祷词与奖励消息', confidence: 96, risk: 8, note: '希望今天运气不错。', tone: 'friendly' },
+  '昔我长铭，流光拓影': { route: 'dailyPrayer.run', context: '祷词与奖励消息', confidence: 96, risk: 8, note: '希望今天运气不错。', tone: 'friendly' },
   '虚空祈求 1': { route: 'voidPrayer.draw', context: 'a.3 稀有度概率与娱乐物品池', confidence: 94, risk: 35, note: '来个好东西吧。', tone: 'expectant' },
   '捡垃圾': { route: 'junk.scavenge', context: 'a.3 容器等级概率', confidence: 97, risk: 12, note: '看看这次能捡到什么。', tone: 'casual' },
   '恶魔轮盘 加入': { route: 'roulette.join', context: '房间状态、人数与模式', confidence: 91, risk: 63, note: '人齐了就可以开局。', tone: 'calm' },
@@ -180,7 +182,7 @@ const thoughtBody = computed<ThoughtLine[]>(() => {
     ]
     case '关于椰子水': return [
       line(part('const', 'kw'), ' packages = ', part('await', 'kw'), ' runtime.', part('manifests', 'fn'), '()'),
-      line('assert(packages.every(pkg => pkg.version === ', part('"3.0.0-alpha.3"', 'str'), '))'),
+      line('assert(packages.every(pkg => pkg.version === ', part('"3.0.0-rc.1"', 'str'), '))'),
       thought('让他看看我现在运行得很好。'),
       line(part('return', 'kw'), ' packages.', part('select', 'fn'), '([', part('"core"', 'str'), ', ', part('"business"', 'str'), ', ', part('"thinking"', 'str'), '])'),
     ]
@@ -191,7 +193,7 @@ const thoughtBody = computed<ThoughtLine[]>(() => {
       thought('信息有点多，按顺序排好。'),
       line(part('return', 'kw'), ' format.', part('profile', 'fn'), '({ ...profile, ...assets })'),
     ]
-    case '每日祈祷': return [
+    case '昔我长铭，流光拓影': return [
       line(part('const', 'kw'), ' faith = faiths.', part('resolvePrayerWord', 'fn'), '(', part('"昔我长铭，流光拓影"', 'str'), ')'),
       line(part('const', 'kw'), ' blessing = prayer.', part('preview', 'fn'), '(faith, entertainmentMode)'),
       thought('希望今天的运气不错。'),
@@ -199,7 +201,7 @@ const thoughtBody = computed<ThoughtLine[]>(() => {
     ]
     case '虚空祈求 1': return [
       line(part('const', 'kw'), ' count = validate(intent.count, ', part('1', 'num'), ', ', part('100', 'num'), ')'),
-      line(part('const', 'kw'), ' draws = void.', part('draw', 'fn'), '(count, ', part('A3_PROBABILITIES', 'type'), ')'),
+      line(part('const', 'kw'), ' draws = void.', part('draw', 'fn'), '(count, ', part('DEFAULT_PROBABILITIES', 'type'), ')'),
       line(part('const', 'kw'), ' eggs = draws.', part('filter', 'fn'), '(isHighRarity).', part('roll', 'fn'), '(', part('0.05', 'num'), ')'),
       thought('来点真正的好东西吧。'),
       line(part('return', 'kw'), ' reveal.', part('cards', 'fn'), '([...draws, ...eggs], { persist: ', part('false', 'kw'), ' })'),
@@ -421,7 +423,14 @@ onBeforeUnmount(() => { clearInterval(timer); clearInterval(thoughtTimer); clear
     <header class="cf-os-head">
       <div class="cf-wordmark"><b>COCOFAITH</b><span>// KOISHI GROUP RPG CONSOLE</span></div>
       <nav><a href="/start/what-is-cocofaith">[F1] 使用手册</a><a href="/develop/architecture">[F2] 架构</a><a href="/start/quick-start">[F3] 部署</a></nav>
-      <div class="cf-clock"><i></i> CONNECTED · {{ now }}</div>
+      <div class="cf-home-tools">
+        <div class="cf-clock"><i></i> CONNECTED · {{ now }}</div>
+        <button class="cf-theme-toggle" type="button" role="switch" :aria-checked="isDark" aria-label="暗色主题" title="切换亮暗主题" @click="isDark = !isDark">
+          <svg class="cf-theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+          <svg class="cf-theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14Z"/></svg>
+          <span>主题</span>
+        </button>
+      </div>
     </header>
 
     <div class="cf-workspace">
@@ -446,7 +455,7 @@ onBeforeUnmount(() => { clearInterval(timer); clearInterval(thoughtTimer); clear
       <aside class="cf-side">
         <section class="cf-box cf-thoughts">
           <div class="cf-label"><span>/ coconut.mind</span><em>private process / live</em></div>
-          <div class="cf-mind-head"><span class="cf-mind-orb"><img src="/coconut-thinking-pixel-tight.png" alt="白发、浅蓝挑染并佩戴圆形发饰的低像素椰子水头像"></span><div><small>NOW THINKING</small><strong>{{ thoughtCommand }}</strong><em>@mueo/cocofaith-adapter-thinking</em></div></div>
+          <div class="cf-mind-head"><span class="cf-mind-orb"><img src="/coconut-thinking-pixel-tight.png" alt="白发、浅蓝挑染并佩戴圆形发饰的低像素椰子水头像"></span><div><small>NOW THINKING</small><strong>{{ thoughtCommand }}</strong><em>CoCoFaith · 交互演示</em></div></div>
           <div class="cf-thought-code" aria-label="椰子水思维程序">
             <div v-for="(codeLine, lineIndex) in thoughtProgram" :key="`${mindKey}-${lineIndex}`" :class="{ 'is-active': thoughtStep === lineIndex + 1 }"><i>{{ String(lineIndex + 1).padStart(2, '0') }}</i><code><span v-for="(codePart, partIndex) in codeLine" :key="partIndex" :class="codePart.tone">{{ codePart.text }}</span></code></div>
           </div>
@@ -462,6 +471,6 @@ onBeforeUnmount(() => { clearInterval(timer); clearInterval(thoughtTimer); clear
     </div>
 
     <div class="cf-progress"><span>/ runtime-load</span><i><b :style="{ width: `${load}%` }"></b></i><em>{{ load }}%</em></div>
-    <footer class="cf-statusbar"><span>cocofaith@3.0.0-alpha.3</span><span>core ↔ business ↔ adapter</span><span>game-day 07:30 / Asia·Shanghai</span><span>UTF-8</span><b>ONLINE</b></footer>
+    <footer class="cf-statusbar"><span>cocofaith@3.0.0-rc.1</span><span>core ↔ business ↔ adapter</span><span>game-day 07:30 / Asia·Shanghai</span><span>UTF-8</span><b>ONLINE</b></footer>
   </main>
 </template>

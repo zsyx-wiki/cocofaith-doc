@@ -1,53 +1,65 @@
-# Core 配置
+# 基础配置
 
-CoCoFaith Core 注册 `faithCore` 服务、初始化公共数据表，并维护 UID、平台身份、经济、背包和事务。它不注册玩家命令；Business 和 Adapter 通过服务接口使用 Core。
+以下设置位于 `cocofaith` 的 **core** 区域，不需要另行安装 Core 插件。
 
-Core 配置定义位于 `koishi-plugin-cocofaith-core/config.ts`。
+## 注册 `registration`
 
-## 加载要求
+<div class="cf-doc-table">
 
-Core 必须在数据库插件之后、Business 之前加载：
+| 配置项 | 默认值 | 范围 | 说明 |
+| --- | --- | --- | --- |
+| `core.registration.initialGold` | `300` | 0～1000000000 的整数 | 新角色注册时获得的金币 |
 
-```text
-数据库插件
-→ CoCoFaith Core
-→ CoCoFaith Business
-→ CoCoFaith Adapter
+</div>
+
+只影响之后注册的新角色，不会调整已有角色余额。
+
+## 游戏日 `gameDay`
+
+<div class="cf-doc-table">
+
+| 配置项 | 默认值 | 范围 | 说明 |
+| --- | --- | --- | --- |
+| `core.gameDay.enabled` | `true` | 布尔值 | 启用游戏日定时调度 |
+| `core.gameDay.timezone` | `Asia/Shanghai` | 有效 IANA 时区 | 用于计算游戏日的时区 |
+| `core.gameDay.rolloverHour` | `7` | 0～23 的整数 | 切日小时 |
+| `core.gameDay.rolloverMinute` | `30` | 0～59 的整数 | 切日分钟 |
+| `core.gameDay.checkIntervalSeconds` | `60` | 10～3600 的整数 | 检查游戏日变化的间隔，单位秒 |
+| `core.gameDay.lockTimeoutSeconds` | `1800` | 60～86400 的整数 | 跨实例任务锁超时，单位秒 |
+| `core.gameDay.runOnStartup` | `true` | 布尔值 | 启动时补执行当前游戏日任务 |
+
+</div>
+
+默认在北京时间 **07:30** 切换游戏日。在这个时间之前仍属于上一游戏日。
+
+### 两类每日行为
+
+<div class="cf-doc-table">
+
+| 行为 | 如何更新 | 关闭定时调度后 |
+| --- | --- | --- |
+| 祈祷、祈求、捡垃圾次数 | 使用时按当前游戏日判断 | 日期仍计算，次数仍会进入新游戏日 |
+| 俱乐部续费 | 游戏日定时任务 | 不再自动执行 |
+| 容器滴落与觐献机会恢复 | 游戏日定时任务 | 不再自动执行 |
+
+</div>
+
+定时任务可能略晚于切日时间触发，取决于检查间隔和运行状况。
+
+关闭 `enabled` 会停止自动调度，但**不会停止游戏日期的计算**，不能用它冻结所有每日次数。关闭后俱乐部和容器的自动日结也不会正常执行。
+
+`runOnStartup` 用于处理当前游戏日尚未完成的任务，不会逐个补算所有停机日期。
+
+```yaml
+core:
+  gameDay:
+    enabled: true
+    timezone: Asia/Shanghai
+    rolloverHour: 7
+    rolloverMinute: 30
+    checkIntervalSeconds: 60
+    lockTimeoutSeconds: 1800
+    runOnStartup: true
 ```
 
-没有 Koishi 数据库服务时，Core 无法保存 UID、身份、背包、经济和业务状态。
-
-## 注册设置
-
-| 配置项 | 默认值 | 范围 | 说明 |
-| --- | ---: | --- | --- |
-| `registration.initialGold` | `300` | `0-1000000000` | 新用户注册时获得的初始金币。 |
-
-`initialGold` 只影响新注册用户。修改后不会自动重算已经存在的玩家资产。
-
-## 游戏日设置
-
-游戏日用于统一每日刷新、每日祈祷、虚空祈求次数、俱乐部日结等跨玩法日周期能力。默认按北京时间每天 `07:30` 切换。
-
-| 配置项 | 默认值 | 范围 | 说明 |
-| --- | ---: | --- | --- |
-| `gameDay.enabled` | `true` | 布尔值 | 是否启用统一游戏日调度。关闭后依赖游戏日的每日刷新不会自动执行。 |
-| `gameDay.timezone` | `Asia/Shanghai` | IANA 时区字符串 | 游戏日所属时区。中国大陆部署通常保持默认。 |
-| `gameDay.rolloverHour` | `7` | `0-23` | 游戏日切换小时。 |
-| `gameDay.rolloverMinute` | `30` | `0-59` | 游戏日切换分钟。 |
-| `gameDay.checkIntervalSeconds` | `60` | `10-3600` | 调度检查间隔，单位秒。 |
-| `gameDay.lockTimeoutSeconds` | `1800` | `60-86400` | 跨实例任务锁超时，单位秒。 |
-| `gameDay.runOnStartup` | `true` | 布尔值 | 启动时补执行当前游戏日任务。 |
-
-## 多实例注意事项
-
-Core 的游戏日调度包含跨实例锁设置。多个 Koishi 实例连接同一数据库时，请保持 `lockTimeoutSeconds` 足够覆盖一次日任务执行时间，避免实例异常退出后锁长期占用。
-
-如果你只运行单实例，一般不需要改动 `lockTimeoutSeconds`。
-
-## 调整建议
-
-- 普通群聊部署保持默认 `Asia/Shanghai` 与 `07:30` 即可。
-- 如果群成员主要在其他时区，可以只修改 `timezone`，再根据习惯调整 `rolloverHour` 和 `rolloverMinute`。
-- 不建议频繁修改游戏日切换时间。修改后请观察每日类命令和日结类玩法是否符合预期。
-- 生产环境升级或大幅调整前，请先备份数据库。
+更换时区或切日时间会改变玩家的日常次数边界；已有数据不需要因为显示时区不同而手动修改。

@@ -1,87 +1,62 @@
-# OneBot Adapter
+# OneBot 适配器配置
 
-包名：`@mueo/koishi-plugin-cocofaith-adapter-onebot`
+`koishi-plugin-cocofaith-adapter-onebot` 将 CoCoFaith 消息转换为 OneBot 平台适配器可用的格式。
 
-版本：`3.0.0-alpha.3`
+需要启用 `koishi-plugin-adapter-onebot`，连接地址和机器人账号在该平台适配器中配置。
 
-本插件接收 Koishi 中平台名为 `onebot` 的 Session。它依赖 Core、Business 和 Koishi 数据库服务。
+以下字段直接位于 **cocofaith-adapter-onebot** 的配置中。
 
-```text
-数据库插件
-→ CoCoFaith Core
-→ CoCoFaith Business
-→ CoCoFaith Adapter OneBot
-```
+<div class="cf-doc-table">
 
-## 安装
-
-先让现有 OneBot 适配器能够在 Koishi 中正常收发消息，再安装：
-
-::: code-group
-
-```sh [pnpm]
-pnpm add @mueo/koishi-plugin-cocofaith-adapter-onebot@3.0.0-alpha.3
-```
-
-```sh [npm]
-npm install @mueo/koishi-plugin-cocofaith-adapter-onebot@3.0.0-alpha.3
-```
-
-:::
-
-## 配置
-
-| 配置 | 默认值 | 说明 |
+| 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `mode` | `binding` | `binding` 只在私聊处理绑定命令；`normal` 处理私聊和群聊中的完整命令。 |
-| `allowRegistration` | `false` | 正常模式下是否允许 OneBot 用户创建新 UID。 |
-| `enableBroadcast` | `true` | 是否发送 Business 提供的全服公告。 |
+| `mode` | `binding` | `binding` 只在私聊处理“椰子水”命令；`normal` 提供完整玩法 |
+| `allowRegistration` | `false` | 是否允许直接注册新 UID，仅正常模式生效 |
+| `enableBroadcast` | `true` | 允许发送玩法提供的全服广播 |
 
-### `mode`
+</div>
 
-只使用 OneBot 时设为 `normal`。默认 `binding` 模式只接受以下私聊命令：
+## 独立使用 OneBot
 
-```text
-椰子水 申请绑定
-椰子水 确认绑定 [TokenB]
+```yaml
+mode: normal
+allowRegistration: true
+enableBroadcast: true
 ```
 
-群聊里的普通玩法命令在绑定模式下不会处理。
+玩家可以直接通过 `信仰 注册 [信仰名]` 创建角色。角色按 OneBot QQ 身份识别，不需要先使用 QQ 官方机器人。
 
-### `allowRegistration`
+## 共用 QQ 官方机器人的角色
 
-这个选项只有 `mode: normal` 时生效。
+```yaml
+mode: normal
+allowRegistration: false
+enableBroadcast: true
+```
 
-- `false`：未绑定的 OneBot QQ 不能执行 `信仰 注册`。
-- `true`：允许 OneBot 身份直接创建 CoCoFaith UID。
+此时 OneBot 处理完整玩法，但不能新注册角色。玩家先在 QQ 官方机器人注册，再通过 [身份绑定](/gameplay/binding) 关联 OneBot 身份。
 
-如果 QQ 官方机器人是统一注册入口，请保持关闭；如果只部署 OneBot，通常需要打开。
+已经分别注册的两个 UID 不会自动合并。
 
-### `enableBroadcast`
+只需 OneBot 接收绑定私聊时，将 `mode` 保持为 `binding`。
 
-开启后，真神晋升等带公告的 Business 结果可以由 OneBot 广播。关闭不会影响命令发起者收到普通结果。
+绑定模式不响应普通玩法，也不因为 `allowRegistration: true` 就开放注册。
 
-## 与 QQ 官方机器人绑定
+## 全服广播
 
-1. OneBot 私聊发送 `椰子水 申请绑定`，取得 Token A。
-2. 已注册用户在 QQ 官方机器人群聊发送 `椰子水 申请绑定 [TokenA]`。
-3. Token B 会发送到第一步的 OneBot 私聊。
-4. 同一个 OneBot QQ 私聊发送 `椰子水 确认绑定 [TokenB]`。
+开启 `enableBroadcast` 后，适配器可以把玩法产生的全服广播发送到记录的群聊，并排除产生事件的原群，避免在那里重复播报。
 
-绑定完成后，两个平台身份解析到同一 UID。流程不会合并两个已经存在的 UID。
+关闭后不发送这些广播，普通命令回复不受影响。
 
-## 推荐组合
+### 两种“绑定”设置的区别
 
-| 场景 | `mode` | `allowRegistration` |
-| --- | --- | --- |
-| 只使用 OneBot | `normal` | `true` |
-| QQ 注册，OneBot 只绑定 | `binding` | `false` |
-| OneBot 是主入口，QQ 只绑定 | `normal` | 按需要开启 |
+<div class="cf-doc-table">
 
-## 启动检查
+| 设置 | 控制内容 |
+| --- | --- |
+| 适配器 `mode: binding` | 这个接入端只接收绑定相关命令 |
+| `business.binding.enabled` | 是否启用绑定玩法本身 |
 
-- 底层 OneBot 适配器产生的 `session.platform` 是 `onebot`。
-- 数据库、Core 和 Business 已先加载。
-- 单平台部署没有误用默认 `binding`。
-- 需要新玩家注册时已开启 `allowRegistration`。
-- `关于椰子水` 能返回 OneBot Adapter 版本。
+</div>
+
+两种适配器可以同时启用。分别选择运行模式即可，具体组合见 [快速开始](/start/quick-start#同时使用两个适配器)。

@@ -1,81 +1,52 @@
-# 部署与升级
+# 运行与更新
 
-第一次安装请先完成 [快速开始](./quick-start)。本页用于上线前检查和版本升级。
+## 更新插件
 
-## 上线检查
+在 Koishi 的依赖管理中更新 `cocofaith` 及使用中的 CoCoFaith 消息适配器，然后应用更新。插件市场安装与命令行安装使用的是同一组 npm 包。
 
-1. 数据库、Core、Business 和 Adapter 均已启用。
-2. Core、Business、Adapter 使用同一套 a.3 版本。
-3. 只有预期的 Adapter 处于 `normal` 模式。
-4. QQ Adapter 中的作者测试 openid 已全部替换。
-5. `关于椰子水` 能返回各组件版本。
-6. 注册、信息、每日祈祷和虚空祈求已经在测试账号验证。
-
-插件加载顺序：
-
-```text
-数据库插件
-→ CoCoFaith Core
-→ CoCoFaith Business
-→ CoCoFaith Adapter
-```
-
-## 固定版本
-
-生产环境建议安装明确版本，不使用不固定的 Git 分支。
+使用 npm 管理项目时，在 Koishi 项目目录执行：
 
 ::: code-group
 
-```sh [pnpm]
-pnpm add @mueo/koishi-plugin-cocofaith-core@3.0.0-alpha.3 \\
-  @mueo/koishi-plugin-cocofaith-business@3.0.0-alpha.3 \\
-  @mueo/koishi-plugin-cocofaith-adapter-qq@3.0.0-alpha.3
+```sh [QQ 官方机器人]
+npm install koishi-plugin-cocofaith@latest koishi-plugin-cocofaith-adapter-qq@latest
 ```
 
-```sh [npm]
-npm install @mueo/koishi-plugin-cocofaith-core@3.0.0-alpha.3 \\
-  @mueo/koishi-plugin-cocofaith-business@3.0.0-alpha.3 \\
-  @mueo/koishi-plugin-cocofaith-adapter-qq@3.0.0-alpha.3
+```sh [OneBot]
+npm install koishi-plugin-cocofaith@latest koishi-plugin-cocofaith-adapter-onebot@latest
 ```
 
 :::
 
-使用 OneBot 时，把最后一个包换成 `@mueo/koishi-plugin-cocofaith-adapter-onebot@3.0.0-alpha.3`。
+两个适配器都启用时，一并更新。当前文档对应 `3.0.0-rc.1`；需要固定这一版时，将 `@latest` 换成 `@3.0.0-rc.1`。
 
-## 身份绑定
+SDK 随插件依赖安装，不需要在 Koishi 插件列表中添加。
 
-QQ 官方机器人和 OneBot 可以使用同一个 UID：
+更新前保留数据库和 Koishi 配置备份，并阅读新版本的更新日志。正在进行的恶魔轮盘应先结束或强制结束，避免更新中断对局。
 
-1. OneBot 私聊发送 `椰子水 申请绑定`，取得 Token A。
-2. 已注册用户在 QQ 官方机器人群聊发送 `椰子水 申请绑定 [TokenA]`。
-3. Token B 会发回第一步的 OneBot 私聊。
-4. 同一个 OneBot QQ 私聊发送 `椰子水 确认绑定 [TokenB]`。
+## 配置修改与重启
 
-令牌默认有效 300 秒。绑定只给已有 UID 增加身份，不合并两个已有玩家。
+玩法参数位于 `cocofaith` 的 `business` 区域，基础设置位于 `core` 区域。
 
-## 升级步骤
+通过控制台修改后按 Koishi 提示应用；不需要另行安装 Core、Business 插件。
 
-1. 停止 Koishi，备份数据库和 Koishi 配置。
-2. 同时升级 Core、Business 和全部 CoCoFaith Adapter。
-3. 重新启动，先检查日志中的组件版本和数据库错误。
-4. 执行低风险命令验证读取和写入。
-5. 最后再恢复多人房间等长流程玩法。
+完整重启会清除尚未完成的绑定申请，玩家需要重新申请令牌。仅更新绑定模块的配置会保留未过期申请和回复通道。
 
-升级后建议测试：
+<div class="cf-doc-table">
 
-```text
-关于椰子水
-信仰 信息
-每日祈祷
-虚空祈求 1
-容器 查看
-```
+| 设置或操作 | 对每日任务的影响 |
+| --- | --- |
+| 默认切日 | 北京时间 07:30 |
+| 启动补执行 | 补当前游戏日尚未完成的任务，不逐日补发停机奖励 |
+| 更换时区、切日时间 | 改变次数重置边界，调整前应告知玩家 |
+| 完整重启 | 未完成的绑定令牌失效，需要重新申请 |
 
-## 需要备份的内容
+</div>
 
-- Koishi 数据库
-- Koishi 配置文件
-- Adapter 的 openid、模式和平台配置
-- 自定义玩法和自定义数据文件
+## 日常检查
 
-不要把生产数据库直接交给开发版本做迁移测试。先复制备份，在测试实例确认启动、注册表加载和资产读写都正常。
+使用 `关于椰子水` 查看当前版本，使用 `椰子水 用户信息` 查看平台身份与 UID。
+
+排查账号数据不一致时，先确认 QQ 官方机器人和 OneBot 是否绑定到了同一个 UID。
+
+数据库文件、平台登录凭据和机器人配置都需要持久保存。迁移服务器时一并迁移这些数据，避免只迁移 npm 依赖目录。

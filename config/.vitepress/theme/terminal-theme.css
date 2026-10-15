@@ -1,0 +1,45 @@
+:root {
+  --cf-bg: #edf2fb;
+  --cf-panel: #fbfcff;
+  --cf-panel-soft: #e7eefb;
+  --cf-panel-recess: #f0f4fc;
+  --cf-panel-glass: #f8faffed;
+  --cf-line: #8b9fc5;
+  --cf-line-dim: #d0daed;
+  --cf-blue: #375caf;
+  --cf-bright: #1d315c;
+  --cf-text: #354965;
+  --cf-mute: #586c8b;
+  --cf-quiet: #657995;
+  --cf-glow: #dce6fb;
+  --cf-gold: #88611b;
+  --cf-green: #216f63;
+  --cf-danger: #a33451;
+  --cf-purple: #7850a8;
+  --cf-orange: #a45a24;
+  --cf-scan: 0.035;
+  --cf-shadow: 0 8px 28px #2a447c0a;
+}
+
+.dark {
+  --cf-bg: #02040e;
+  --cf-panel: #030612;
+  --cf-panel-soft: #0a1028;
+  --cf-panel-recess: #040817;
+  --cf-panel-glass: #020511ed;
+  --cf-line: #586aa7;
+  --cf-line-dim: #27335f;
+  --cf-blue: #8ca6f2;
+  --cf-bright: #c4ceee;
+  --cf-text: #aab3cf;
+  --cf-mute: #8a97b8;
+  --cf-quiet: #7888a9;
+  --cf-glow: #101c3e;
+  --cf-gold: #d0b77b;
+  --cf-green: #86c5b8;
+  --cf-danger: #e497af;
+  --cf-purple: #b49ae9;
+  --cf-orange: #dda783;
+  --cf-scan: 0.14;
+  --cf-shadow: 0 8px 28px #0003;
+}

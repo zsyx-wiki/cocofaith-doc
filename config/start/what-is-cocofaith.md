@@ -1,49 +1,47 @@
 # 什么是 CoCoFaith
 
-CoCoFaith 是一组运行在 Koishi 上的群聊游戏插件。玩家可以注册信仰、选择职业、收集物品、积累金币和登神分，也可以参加恶魔轮盘、椰汁俱乐部和神性容器等玩法。
+CoCoFaith 是运行在 Koishi 上的群聊 RPG 插件。
 
-当前文档对应 `3.0.0-alpha.3`。只想把机器人运行起来，可以直接阅读 [快速开始](./quick-start)。
+玩家可以选择信仰和职业，通过祈祷、虚空祈求、捡垃圾积累资源，收集物品和称号，参与恶魔轮盘，或借助神性容器成为从神、建立自己的真神信仰。
 
-## 运行时组件
+当前使用篇对应 **3.0.0-rc.1**。各页面的费用、概率和次数均按默认配置介绍；机器人管理员可以调整部分参数。
 
-一次完整部署由 Core、Business 和至少一个 Adapter 组成。
+## 从哪里开始
 
-| 组件 | 用途 | 是否必须 |
-| --- | --- | --- |
-| CoCoFaith Core | 保存 UID、平台身份、玩家资产、背包、信仰和职业，并提供事务能力。 | 必须 |
-| CoCoFaith Business | 注册命令并运行所有玩法。 | 必须 |
-| Adapter QQ | 接入 QQ 官方机器人。 | 按平台选择 |
-| Adapter OneBot | 接入 OneBot。 | 按平台选择 |
+部署机器人请看 [快速开始](./quick-start)。
 
-`@mueo/cocofaith-sdk` 是开发契约，不是 Koishi 插件。普通服主不需要单独配置它，安装 Core、Business 或 Adapter 时会自动安装对应版本。
+已经进群的玩家可以直接阅读 [玩法](/gameplay/)，先用 `信仰 注册 记忆` 创建角色，再选择职业。
 
-插件加载顺序：
+<div class="cf-doc-table">
 
-```text
-数据库插件
-→ CoCoFaith Core
-→ CoCoFaith Business
-→ 一个或多个 CoCoFaith Adapter
-```
+| 想做什么 | 阅读 |
+| --- | --- |
+| 选择信仰、职业，查看角色 | [信仰与职业](/gameplay/faith) |
+| 获取日常资源 | [每日祈祷](/gameplay/daily-prayer)、[虚空祈求](/gameplay/void-prayer)、[捡垃圾](/gameplay/junk) |
+| 出售、开启物品 | [物品](/gameplay/items) |
+| 查看收藏、使用称号 | [图鉴](/gameplay/collection)、[称号](/gameplay/title) |
+| 参加多人游戏 | [恶魔轮盘](/gameplay/roulette) |
+| 入会、领取救济 | [椰汁俱乐部](/gameplay/club) |
+| 积累神性、登神 | [神性容器与真神](/gameplay/container) |
+| 关联 QQ 官方机器人和 OneBot 账号 | [身份绑定](/gameplay/binding) |
 
-Core 和 Business 不直接接收聊天消息。Adapter 读取平台事件，交给 Business 处理，再把结果发送回平台。
+</div>
 
-## a.3 已包含的玩法
+## 账号与游戏日
 
-- 信仰注册、信息、弃誓和职业管理
-- 每日祈祷、虚空祈求、捡垃圾
-- 物品开启、按物品或稀有度出售
-- 称号与收藏图鉴
-- 椰汁俱乐部、会费、贡献、救济和分成
-- 普通、赌徒和疯狂模式恶魔轮盘
-- 神性容器、觐献、从神和真神
-- QQ 官方机器人与 OneBot 身份绑定
-- 创造者管理命令
+角色以 UID 标识。同一角色的金币、信仰和玩法进度可以在不同群聊中使用。
 
-神性容器和神性碎片是不可出售、不可随机获得的 EX 级物品。EX 位于 SP 之上，由管理员通过容器管理命令发放。
+QQ 官方机器人与 OneBot 的平台身份不同，想使用同一个角色，需要先完成绑定；分别注册不会自动合并数据。
 
-## UID 与跨平台身份
+默认每天北京时间 **07:30** 进入下一个游戏日。每日祈祷、虚空祈求、捡垃圾等次数按游戏日计算，不在午夜重置。
 
-玩家资产保存在 CoCoFaith UID 下，不直接绑定某个群号或平台账号。QQ 官方机器人身份和 OneBot QQ 可以通过双向令牌绑定到同一 UID。
+## 安装哪些插件
 
-如果只部署一个 Adapter，也可以让该 Adapter 直接开放注册。具体选项见 [QQ Adapter 配置](../config/adapter-qq) 和 [OneBot Adapter 配置](../config/adapter-onebot)。
+`cocofaith` 提供数据服务和玩法。还需要一个 CoCoFaith 消息适配器，把消息转换为对应平台适配器可用的格式：
+
+- 使用 QQ 官方机器人：安装 `cocofaith-adapter-qq`。
+- 使用 OneBot：安装 `cocofaith-adapter-onebot`。
+
+两种 CoCoFaith 适配器可以同时启用。它们分别需要 Koishi 的 QQ 或 OneBot 平台适配器负责机器人登录和收发消息。
+
+安装与模式选择见 [快速开始](./quick-start)。

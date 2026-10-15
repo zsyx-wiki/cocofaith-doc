@@ -63,3 +63,10 @@
 .cf-home-page .vp-doc h3,
 .cf-home-page .vp-doc p { margin: 0; padding: 0; border: 0; line-height: inherit; }
 .cf-home-page .vp-doc a { color: inherit; text-decoration: none; }
+
+.cf-doc-table { max-width: 100%; overflow-x: auto; margin: 16px 0; }
+.cf-doc-table table { margin: 0; min-width: 100%; }
+.cf-doc-table td { vertical-align: top; line-height: 1.7; }
+.cf-doc-table th { white-space: nowrap; }
+.cf-doc-table td:first-child { min-width: 4.5em; }
+.cf-doc-table td code { white-space: nowrap; }

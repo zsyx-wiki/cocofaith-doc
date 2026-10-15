@@ -1,109 +1,90 @@
-# QQ 官方机器人 Adapter
+# QQ 适配器配置
 
-包名：`@mueo/koishi-plugin-cocofaith-adapter-qq`
+`koishi-plugin-cocofaith-adapter-qq` 将 CoCoFaith 消息转换为 QQ 官方平台适配器可用的格式。
 
-版本：`3.0.0-alpha.3`
+需要同时启用 `@koishijs/plugin-adapter-qq`，并在其中配置机器人账号与平台权限。
 
-本插件接收 `koishi-plugin-adapter-qq` 产生的事件，并把 Business 结果转换成 QQ 官方机器人支持的消息。启用前必须先加载 Core 和 Business。
+以下字段直接位于 **cocofaith-adapter-qq** 的配置中。
 
-```text
-CoCoFaith Core
-→ CoCoFaith Business
-→ CoCoFaith Adapter QQ
-```
+## 接收模式
 
-## 安装
+<div class="cf-doc-table">
 
-::: code-group
-
-```sh [pnpm]
-pnpm add @mueo/koishi-plugin-cocofaith-adapter-qq@3.0.0-alpha.3 \\
-  koishi-plugin-adapter-qq
-```
-
-```sh [npm]
-npm install @mueo/koishi-plugin-cocofaith-adapter-qq@3.0.0-alpha.3 \\
-  koishi-plugin-adapter-qq
-```
-
-:::
-
-## 先选择运行模式
-
-| `mode` | 会处理什么 | 适用场景 |
+| 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `binding` | 仅处理群聊中的“椰子水”绑定命令，不处理私聊和普通玩法。 | OneBot 是主入口，QQ 只协助绑定。 |
-| `normal` | 处理完整 CoCoFaith 命令。 | QQ 官方机器人是主入口或唯一入口。 |
+| `mode` | `binding` | `binding` 只在群聊处理“椰子水”命令；`normal` 提供完整玩法 |
+| `receiveMode` | `mention` | `mention` 要求群聊艾特机器人；`all` 接收全部群消息，但只处理可识别的 CoCoFaith 命令 |
+| `allowProactiveMessages` | `false` | 允许发送玩法明确要求的主动消息，仍需平台允许 |
 
-默认值是 `binding`。只安装 QQ Adapter 时必须改成 `normal`，否则 `信仰 注册`、`每日祈祷` 等命令不会进入 Business。
+</div>
 
-同时运行 QQ 和 OneBot 时，通常只让一个 Adapter 使用 `normal`，避免两个机器人同时回复。
+<div class="cf-doc-table">
 
-## 群消息接收
+| 场景 | 接收规则 |
+| --- | --- |
+| 群聊，`mention` | 需要艾特机器人 |
+| 群聊，`all` | 处理收到的群消息，但只路由可识别的 CoCoFaith 命令 |
+| 私聊 | 不受 `receiveMode` 影响 |
 
-| 配置 | 默认值 | 说明 |
-| --- | --- | --- |
-| `receiveMode` | `mention` | `mention` 只处理艾特机器人的群消息；`all` 允许未艾特命令。 |
+</div>
 
-私聊不受 `receiveMode` 影响。即使选择 `all`，QQ 开放平台也必须真的向机器人下发全量群消息事件；插件无法处理没有收到的消息。
+`all` 需要平台实际提供全量群消息事件，修改配置不能代替平台权限。
 
-第一次部署建议保留 `mention`，确认命令和权限正常后再考虑 `all`。
+能收到消息也不代表所有玩法都能在该场景使用，玩法自己的群聊、私聊限制仍然有效。
 
 ## 创造者身份
 
-| 配置 | 应填写的内容 |
+<div class="cf-doc-table">
+
+| 配置项 | 说明 |
 | --- | --- |
-| `creatorUserOpenids` | 创造者私聊事件中的 `user_openid` 列表 |
-| `creatorGroupIdentities` | 每个目标群的 `group_openid` 与创造者在该群的 `member_openid` |
+| `creatorUserOpenids` | 私聊创造者的 `user_openid` 数组 |
+| `creatorGroupIdentities` | 群聊创造者身份数组，每项为 `groupOpenid` 与 `memberOpenid` |
 
-::: danger 不要保留默认值
-默认值属于插件作者的测试账号和测试群。普通 QQ 号不能代替 openid。
-:::
+</div>
 
-群聊创造者身份需要同时填写：
+这两项内置了作者测试身份，部署时应替换或清空。openid 由平台提供，不能填写普通 QQ 号。群聊身份需要同时匹配群和成员，不能只填其中一个。
 
 ```yaml
-creatorGroupIdentities:
-  - groupOpenid: 目标群的 group_openid
-    memberOpenid: 创造者在该群的 member_openid
+mode: normal
+receiveMode: mention
+creatorUserOpenids: []
+creatorGroupIdentities: []
+commandPanel:
+  enabled: false
+allowProactiveMessages: false
 ```
 
-如果创造者命令完全没有回复，先检查这些身份是否来自当前机器人收到的事件，以及该平台身份是否已经注册或绑定 UID。
+上例开放完整玩法，并关闭创造者身份与指令面板。需要创造者功能时，再填写自己的真实平台标识。
 
-## 指令面板
+## 群指令面板
 
-| 配置 | 默认值 | 说明 |
+<div class="cf-doc-table">
+
+| 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `commandPanel.enabled` | `true` | 正常模式下同步 QQ 群指令面板 |
-| `commandPanel.groupId` | 作者测试群 | 面板所在群的 `group_openid`，必须替换 |
+| `commandPanel.enabled` | `true` | 启用 QQ 群指令面板同步，正常模式下生效 |
+| `commandPanel.groupId` | 作者测试群的 group_openid | 展示面板的群，使用前改为自己的群 |
 
-绑定模式不会同步完整玩法面板。暂时不使用面板时，可以关闭 `commandPanel.enabled`，避免错误的群 ID 反复写入日志。
+</div>
 
-面板同步失败不会阻止普通命令处理。
+不用面板时关闭 `enabled` 即可。启用后仍受平台接口权限和群范围限制。
 
-## 主动消息
+## 回复与广播
 
-| 配置 | 默认值 | 说明 |
-| --- | --- | --- |
-| `allowProactiveMessages` | `false` | 允许发送 Business 明确标记为 `proactive-required` 的结果 |
+<div class="cf-doc-table">
 
-普通被动回复过期后会丢弃，不会自动转成主动消息。打开此选项也不代表一定能发送，最终仍受 QQ 开放平台权限、额度和消息凭证限制。
+| 消息类型 | 处理方式 |
+| --- | --- |
+| 普通命令回复 | 使用 QQ 被动回复通道，受有效时间和发送次数限制 |
+| 普通回复凭据过期 | 丢弃，不自动改成主动消息 |
+| 玩法明确要求的主动消息 | 需要 `allowProactiveMessages: true`，并且平台权限允许 |
+| 消息格式发送失败 | 按可用情况回退为文本 |
 
-生产环境建议先保持关闭。
+</div>
 
-## 常用配置
+**开启主动消息不等于延长被动回复时间。**
 
-| 部署方式 | `mode` | `receiveMode` |
-| --- | --- | --- |
-| 只使用 QQ 官方机器人 | `normal` | `mention` |
-| QQ 免艾特响应 | `normal` | `all` |
-| OneBot 负责完整玩法 | `binding` | `mention` |
+多人轮盘发送失败后仍会计时，可以发送 `恶魔轮盘 对局` 查询。
 
-## 启动检查
-
-- `koishi-plugin-adapter-qq` 已经能独立收发消息。
-- Core 和 Business 已在本插件之前加载。
-- `mode` 与实际入口一致。
-- 作者测试 openid 已全部替换。
-- 不使用指令面板时已关闭面板。
-- `关于椰子水` 能返回 QQ Adapter 版本。
+同时启用 OneBot 时的模式组合见 [快速开始](/start/quick-start#同时使用两个适配器)，绑定过程见 [身份绑定](/gameplay/binding)。
